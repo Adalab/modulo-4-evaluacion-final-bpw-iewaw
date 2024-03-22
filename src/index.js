@@ -38,6 +38,7 @@ const getConnection = async () => {
 };
 
 //ENDPOINTS
+//Get all recipes
 server.get('/api/recetas', async (req, res) => {
 
     const conn = await getConnection();
@@ -50,6 +51,22 @@ server.get('/api/recetas', async (req, res) => {
         "info": { "count": results.length },
         "results": results
     });
+
+    conn.end();
+});
+
+//Get one recipe by id
+server.get('/api/recetas/:id', async (req, res) => {
+
+    const id = req.params.id;
+
+    const conn = await getConnection();
+
+    const queryAllRecipes = 'SELECT * FROM recetas WHERE id = ?;';
+
+    const [results] = await conn.query(queryAllRecipes, [id]);
+
+    res.json(results[0]);
 
     conn.end();
 });
