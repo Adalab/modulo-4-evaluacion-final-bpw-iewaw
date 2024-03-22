@@ -15,7 +15,7 @@ server.use(express.json({ limit: '25Mb' }));
 //RUN SERVER
 server.listen(port, () => {
     console.log(`Recipe server started at <http://localhost:${port}>`);
-})
+});
 
 //DB CONFIG
 const getConnection = async () => {
@@ -35,6 +35,21 @@ const getConnection = async () => {
         console.error("Error connecting to database:", error);
         return null;
     }
-}
+};
 
-getConnection();
+//ENDPOINTS
+server.get('/api/recetas', async (req, res) => {
+
+    const conn = await getConnection();
+
+    const queryAllRecipes = 'SELECT * FROM recetas;';
+
+    const [results] = await conn.query(queryAllRecipes);
+
+    res.json({
+        "info": { "count": results.length },
+        "results": results
+    });
+
+    conn.end();
+});
