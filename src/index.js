@@ -32,7 +32,7 @@ const getConnection = async () => {
         return connection;
 
     } catch (error) {
-        console.error("Error connecting to database:", error);
+        console.error("Error connecting to database: ", error);
         return null;
     }
 };
@@ -41,32 +41,81 @@ const getConnection = async () => {
 //Get all recipes
 server.get('/api/recetas', async (req, res) => {
 
-    const conn = await getConnection();
+    try {
+        const conn = await getConnection();
 
-    const queryAllRecipes = 'SELECT * FROM recetas;';
+        const queryAllRecipes = 'SELECT * FROM recetas;';
 
-    const [results] = await conn.query(queryAllRecipes);
+        const [results] = await conn.query(queryAllRecipes);
 
-    res.json({
-        "info": { "count": results.length },
-        "results": results
-    });
+        conn.end();
 
-    conn.end();
+        res.json({
+            info: { count: results.length },
+            results: results
+        });
+
+    } catch (error) {
+        res.json(createErrorResponse('Error connecting to database. ' + error));
+    }
 });
 
 //Get one recipe by id
 server.get('/api/recetas/:id', async (req, res) => {
 
-    const id = req.params.id;
+    try {
+        const id = req.params.id;
 
-    const conn = await getConnection();
+        const conn = await getConnection();
 
-    const queryAllRecipes = 'SELECT * FROM recetas WHERE id = ?;';
+        const queryAllRecipes = 'SELECT * FROM recetas WHERE id = ?;';
 
-    const [results] = await conn.query(queryAllRecipes, [id]);
+        const [results] = await conn.query(queryAllRecipes, [id]);
 
-    res.json(results[0]);
+        conn.end();
 
-    conn.end();
+        res.json(results[0]);
+
+    } catch (error) {
+        res.json(createErrorResponse('Error connecting to database. ' + error));
+    }
 });
+
+//Post a recipe
+server.post('/api/recetas', async (req, res) => {
+
+    try {
+        //Validate the parameters
+        if (!req.body.nombre || req.body.nombre === '') {
+            return res.status(400).json(createErrorResponse('El nombre de la receta es obligatorio.'));
+        } else if (!req.body.ingredientes || req.body.ingredientes === '') {
+            return res.status(400).json(createErrorResponse('Los ingredientes de la receta son obligatorios.'));
+        } else if (!req.body.instrucciones || req.body.instrucciones === '') {
+            return res.status(400).json(createErrorResponse('Las instrucciones de la receta son obligatorias.'));
+        }
+
+        //Connect to the database
+        const conn = await getConnection();
+
+        const insertRecipeSql = 'INSERT INTO recetas(nombre, ingredientes, instrucciones) VALUES (?, ?, ?);';
+
+        const [results] = await conn.execute(insertRecipeSql, [req.body.nombre, req.body.ingredientes, req.body.instrucciones]);
+
+        conn.end();
+
+        res.json({
+            success: true,
+            id: results.insertId
+        });
+
+    } catch (error) {
+        res.json(createErrorResponse('Error connecting to database. ' + error));
+    }
+});
+
+const createErrorResponse = (message) => {
+    return {
+        success: false,
+        message: message
+    };
+};
