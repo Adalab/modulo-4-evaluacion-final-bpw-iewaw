@@ -40,15 +40,17 @@ const getConnection = async () => {
 //Get all recipes
 server.get('/api/recetas', async (req, res) => {
 
+    let connection;
+
     try {
-        const conn = await getConnection();
+        //Connect to the database
+        connection = await getConnection();
 
         const queryAllRecipes = 'SELECT * FROM recetas;';
 
-        const [results] = await conn.query(queryAllRecipes);
+        const [results] = await connection.query(queryAllRecipes);
 
-        conn.end();
-
+        //Send response
         res.json({
             info: { count: results.length },
             results: results
@@ -57,52 +59,64 @@ server.get('/api/recetas', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.json(createErrorResponse('Error connecting to database.'));
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
     }
 });
 
 //Get one recipe by id
 server.get('/api/recetas/:id', async (req, res) => {
 
+    let connection;
+
     try {
-        const conn = await getConnection();
+        //Connect to the database
+        connection = await getConnection();
 
         const queryAllRecipes = 'SELECT * FROM recetas WHERE id = ?;';
 
-        const [results] = await conn.query(queryAllRecipes, [req.params.id]);
+        const [results] = await connection.query(queryAllRecipes, [req.params.id]);
 
-        conn.end();
-
+        //Validate id presence
         if (results.length === 0) {
             return res.status(404).json(createErrorResponse('No existe ninguna receta con este id en la base de datos.'));
         }
 
+        //Send response
         res.json(results[0]);
 
     } catch (error) {
         console.error(error);
         res.json(createErrorResponse('Error connecting to database.'));
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
     }
 });
 
 //Post a recipe
 server.post('/api/recetas', async (req, res) => {
 
+    let connection;
+
     try {
-        //Validate the parameters
+        //Validate parameters
         const validationError = validateReqBody(req);
         if (validationError) {
             return res.status(400).json(createErrorResponse(validationError));
         }
 
         //Connect to the database
-        const conn = await getConnection();
+        connection = await getConnection();
 
         const insertRecipeSql = 'INSERT INTO recetas(nombre, ingredientes, instrucciones) VALUES (?, ?, ?);';
 
-        const [results] = await conn.execute(insertRecipeSql, [req.body.nombre, req.body.ingredientes, req.body.instrucciones]);
+        const [results] = await connection.execute(insertRecipeSql, [req.body.nombre, req.body.ingredientes, req.body.instrucciones]);
 
-        conn.end();
-
+        //Send response
         res.json({
             success: true,
             id: results.insertId
@@ -111,32 +125,38 @@ server.post('/api/recetas', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.json(createErrorResponse('Error connecting to database.'));
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
     }
 });
 
 //Update a recipe
 server.put('/api/recetas/:id', async (req, res) => {
 
+    let connection;
+
     try {
-        //Validate the parameters
+        //Validate parameters
         const validationError = validateReqBody(req);
         if (validationError) {
             return res.status(400).json(createErrorResponse(validationError));
         }
 
         //Connect to the database
-        const conn = await getConnection();
+        connection = await getConnection();
 
         const updateRecipeSql = `UPDATE recetas SET nombre = ?, ingredientes = ?, instrucciones = ? WHERE id = ?`;
 
-        const [results] = await conn.execute(updateRecipeSql, [req.body.nombre, req.body.ingredientes, req.body.instrucciones, req.params.id]);
+        const [results] = await connection.execute(updateRecipeSql, [req.body.nombre, req.body.ingredientes, req.body.instrucciones, req.params.id]);
 
+        //Validate id presence
         if (results.affectedRows === 0) {
             return res.status(404).json(createErrorResponse('No existe ninguna receta con este id en la base de datos.'));
         }
 
-        conn.end();
-
+        //Send response
         res.json({
             success: true
         });
@@ -144,25 +164,32 @@ server.put('/api/recetas/:id', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.json(createErrorResponse('Error connecting to database.'));
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
     }
 });
 
 //Delete one recipe by id
 server.delete('/api/recetas/:id', async (req, res) => {
 
+    let connection;
+
     try {
-        const conn = await getConnection();
+        //Connect to the database
+        const connection = await getConnection();
 
         const queryAllRecipes = 'DELETE FROM recetas WHERE id = ?;';
 
-        const [results] = await conn.query(queryAllRecipes, [req.params.id]);
+        const [results] = await connection.query(queryAllRecipes, [req.params.id]);
 
-        conn.end();
-
+        //Validate id presence
         if (results.affectedRows === 0) {
             return res.status(404).json(createErrorResponse('No existe ninguna receta con este id en la base de datos.'));
         }
 
+        //Send response
         res.json({
             success: true
         });
@@ -170,6 +197,10 @@ server.delete('/api/recetas/:id', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.json(createErrorResponse('Error connecting to database.'));
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
     }
 });
 
