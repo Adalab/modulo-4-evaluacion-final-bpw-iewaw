@@ -72,6 +72,10 @@ server.get('/api/recetas/:id', async (req, res) => {
 
         conn.end();
 
+        if (results.length === 0) {
+            return res.status(404).json(createErrorResponse('No existe ninguna receta con este id en la base de datos.'));
+        }
+
         res.json(results[0]);
 
     } catch (error) {
@@ -127,6 +131,10 @@ server.put('/api/recetas/:id', async (req, res) => {
 
         const [results] = await conn.execute(updateRecipeSql, [req.body.nombre, req.body.ingredientes, req.body.instrucciones, req.params.id]);
 
+        if (results.affectedRows === 0) {
+            return res.status(404).json(createErrorResponse('No existe ninguna receta con este id en la base de datos.'));
+        }
+
         conn.end();
 
         res.json({
@@ -150,6 +158,10 @@ server.delete('/api/recetas/:id', async (req, res) => {
         const [results] = await conn.query(queryAllRecipes, [req.params.id]);
 
         conn.end();
+
+        if (results.affectedRows === 0) {
+            return res.status(404).json(createErrorResponse('No existe ninguna receta con este id en la base de datos.'));
+        }
 
         res.json({
             success: true
