@@ -55,7 +55,8 @@ server.get('/api/recetas', async (req, res) => {
         });
 
     } catch (error) {
-        res.json(createErrorResponse('Error connecting to database. ' + error));
+        console.error(error);
+        res.json(createErrorResponse('Error connecting to database.'));
     }
 });
 
@@ -63,20 +64,19 @@ server.get('/api/recetas', async (req, res) => {
 server.get('/api/recetas/:id', async (req, res) => {
 
     try {
-        const id = req.params.id;
-
         const conn = await getConnection();
 
         const queryAllRecipes = 'SELECT * FROM recetas WHERE id = ?;';
 
-        const [results] = await conn.query(queryAllRecipes, [id]);
+        const [results] = await conn.query(queryAllRecipes, [req.params.id]);
 
         conn.end();
 
         res.json(results[0]);
 
     } catch (error) {
-        res.json(createErrorResponse('Error connecting to database. ' + error));
+        console.error(error);
+        res.json(createErrorResponse('Error connecting to database.'));
     }
 });
 
@@ -108,7 +108,8 @@ server.post('/api/recetas', async (req, res) => {
         });
 
     } catch (error) {
-        res.json(createErrorResponse('Error connecting to database. ' + error));
+        console.error(error);
+        res.json(createErrorResponse('Error connecting to database.'));
     }
 });
 
@@ -123,8 +124,6 @@ server.put('/api/recetas/:id', async (req, res) => {
             return res.status(400).json(createErrorResponse('Los ingredientes de la receta son obligatorios.'));
         } else if (!req.body.instrucciones || req.body.instrucciones === '') {
             return res.status(400).json(createErrorResponse('Las instrucciones de la receta son obligatorias.'));
-        } else if (!req.params.id || req.params.id === '') {
-            return res.status(400).json(createErrorResponse('El id de la receta es obligatorio.'));
         }
 
         //Connect to the database
@@ -141,10 +140,34 @@ server.put('/api/recetas/:id', async (req, res) => {
         });
 
     } catch (error) {
-        res.json(createErrorResponse('Error connecting to database. ' + error));
+        console.error(error);
+        res.json(createErrorResponse('Error connecting to database.'));
     }
 });
 
+//Delete one recipe by id
+server.delete('/api/recetas/:id', async (req, res) => {
+
+    try {
+        const conn = await getConnection();
+
+        const queryAllRecipes = 'DELETE FROM recetas WHERE id = ?;';
+
+        const [results] = await conn.query(queryAllRecipes, [req.params.id]);
+
+        conn.end();
+
+        res.json({
+            success: true
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.json(createErrorResponse('Error connecting to database.'));
+    }
+});
+
+//Error response function
 const createErrorResponse = (message) => {
     return {
         success: false,
