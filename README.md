@@ -13,6 +13,9 @@ Finally, [Postman](https://www.postman.com/) is a great tool to try out the proj
 Inside **data** folder of the project, you will find two SQL files containing the database structure and some sample data. 
 Run them in MySQL Workbench, wherever you wish to create your schema.
 
+Make sure to create your own **.env** file that will include your database connection details.
+You can use **.env_example** included inside the project, just rename it and complete the missing information.
+
 ### Installation
 Please run the below command to install the project properly: 
 
