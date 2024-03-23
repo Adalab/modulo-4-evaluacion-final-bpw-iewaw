@@ -28,7 +28,6 @@ const getConnection = async () => {
         });
 
         await connection.connect();
-        console.log(`Connected to database, thread id: ${connection.threadId}`);
         return connection;
 
     } catch (error) {
@@ -106,6 +105,39 @@ server.post('/api/recetas', async (req, res) => {
         res.json({
             success: true,
             id: results.insertId
+        });
+
+    } catch (error) {
+        res.json(createErrorResponse('Error connecting to database. ' + error));
+    }
+});
+
+//Update a recipe
+server.put('/api/recetas/:id', async (req, res) => {
+
+    try {
+        //Validate the parameters
+        if (!req.body.nombre || req.body.nombre === '') {
+            return res.status(400).json(createErrorResponse('El nombre de la receta es obligatorio.'));
+        } else if (!req.body.ingredientes || req.body.ingredientes === '') {
+            return res.status(400).json(createErrorResponse('Los ingredientes de la receta son obligatorios.'));
+        } else if (!req.body.instrucciones || req.body.instrucciones === '') {
+            return res.status(400).json(createErrorResponse('Las instrucciones de la receta son obligatorias.'));
+        } else if (!req.params.id || req.params.id === '') {
+            return res.status(400).json(createErrorResponse('El id de la receta es obligatorio.'));
+        }
+
+        //Connect to the database
+        const conn = await getConnection();
+
+        const updateRecipeSql = `UPDATE recetas SET nombre = ?, ingredientes = ?, instrucciones = ? WHERE id = ?`;
+
+        const [results] = await conn.execute(updateRecipeSql, [req.body.nombre, req.body.ingredientes, req.body.instrucciones, req.params.id]);
+
+        conn.end();
+
+        res.json({
+            success: true
         });
 
     } catch (error) {
