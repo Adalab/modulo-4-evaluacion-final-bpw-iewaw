@@ -85,12 +85,9 @@ server.post('/api/recetas', async (req, res) => {
 
     try {
         //Validate the parameters
-        if (!req.body.nombre || req.body.nombre === '') {
-            return res.status(400).json(createErrorResponse('El nombre de la receta es obligatorio.'));
-        } else if (!req.body.ingredientes || req.body.ingredientes === '') {
-            return res.status(400).json(createErrorResponse('Los ingredientes de la receta son obligatorios.'));
-        } else if (!req.body.instrucciones || req.body.instrucciones === '') {
-            return res.status(400).json(createErrorResponse('Las instrucciones de la receta son obligatorias.'));
+        const validationError = validateReqBody(req);
+        if (validationError) {
+            return res.status(400).json(createErrorResponse(validationError));
         }
 
         //Connect to the database
@@ -118,12 +115,9 @@ server.put('/api/recetas/:id', async (req, res) => {
 
     try {
         //Validate the parameters
-        if (!req.body.nombre || req.body.nombre === '') {
-            return res.status(400).json(createErrorResponse('El nombre de la receta es obligatorio.'));
-        } else if (!req.body.ingredientes || req.body.ingredientes === '') {
-            return res.status(400).json(createErrorResponse('Los ingredientes de la receta son obligatorios.'));
-        } else if (!req.body.instrucciones || req.body.instrucciones === '') {
-            return res.status(400).json(createErrorResponse('Las instrucciones de la receta son obligatorias.'));
+        const validationError = validateReqBody(req);
+        if (validationError) {
+            return res.status(400).json(createErrorResponse(validationError));
         }
 
         //Connect to the database
@@ -173,4 +167,15 @@ const createErrorResponse = (message) => {
         success: false,
         message: message
     };
+};
+
+//Params validation function
+const validateReqBody = (req) => {
+    if (!req.body.nombre || req.body.nombre === '') {
+        return 'El nombre de la receta es obligatorio.';
+    } else if (!req.body.ingredientes || req.body.ingredientes === '') {
+        return 'Los ingredientes de la receta son obligatorios.';
+    } else if (!req.body.instrucciones || req.body.instrucciones === '') {
+        return 'Las instrucciones de la receta son obligatorias.';
+    }
 };
